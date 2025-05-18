@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marry Me?</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #yesBtn {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        #noBtn {
+            background-color: #d9534f;
+            color: white;
+            /* We'll disable the "No" button with JavaScript */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #congratsMessage {
+            font-size: 1.5em;
+            color: #28a745;
+            margin-top: 20px;
+        }
+
+        /* Basic animation styles - you can get more creative! */
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-200px) rotate(720deg); opacity: 0; }
+        }
+
+        .confetti {
+            width: 10px;
+            height: 10px;
+            background-color: gold;
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Marry Me?</h1>
+    <div class="options">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn" disabled>No</button>
+    </div>
+    <div id="congratsContainer" class="hidden">
+        <div id="confetti-container"></div>
+        <p id="congratsMessage"></p>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const congratsContainer = document.getElementById('congratsContainer');
+        const congratsMessage = document.getElementById('congratsMessage');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        yesBtn.addEventListener('click', () => {
+            congratsMessage.textContent = "Congratulations on getting a good, caring, strong, and charming husband for yourself, Siddhant Tanwar!";
+            congratsContainer.classList.remove('hidden');
+            createConfetti(); // Trigger the confetti animation
+        });
+
+        function createConfetti() {
+            const numberOfConfetti = 100;
+            for (let i = 0; i < numberOfConfetti; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * window.innerWidth}px`;
+                confetti.style.backgroundColor = getRandomColor();
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confettiContainer.appendChild(confetti);
+
+                // Remove confetti after animation ends
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
+</body>
+</html>
