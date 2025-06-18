@@ -14,16 +14,19 @@
             height: 100vh;
             margin: 0;
             background-color: #f4f4f4;
+            overflow: hidden; /* Prevent scrollbar from confetti */
         }
 
         h1 {
             font-size: 3em;
             color: #333;
             margin-bottom: 20px;
+            z-index: 10; /* Keep text above confetti */
         }
 
         .options {
             display: flex;
+            z-index: 10; /* Keep buttons above confetti */
         }
 
         button {
@@ -33,6 +36,7 @@
             cursor: pointer;
             border: none;
             border-radius: 5px;
+            transition: transform 0.1s ease-in-out; /* Smooth movement for shake */
         }
 
         #yesBtn {
@@ -43,7 +47,7 @@
         #noBtn {
             background-color: #d9534f;
             color: white;
-            /* We'll disable the "No" button with JavaScript */
+            /* We'll handle disabled/shaking with JavaScript */
         }
 
         .hidden {
@@ -51,24 +55,73 @@
         }
 
         #congratsMessage {
-            font-size: 1.5em;
+            font-size: 1.8em; /* Slightly larger message */
             color: #28a745;
-            margin-top: 20px;
+            margin-top: 30px; /* More space */
+            text-align: center;
+            z-index: 10;
         }
 
-        /* Basic animation styles - you can get more creative! */
-        @keyframes confetti {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-200px) rotate(720deg); opacity: 0; }
+        /* Celebration Animation Styles */
+        .celebration-element {
+            position: absolute;
+            background-color: var(--color);
+            opacity: 0;
+            animation: celebrate 3s forwards;
+            animation-timing-function: cubic-bezier(0.1, 0.7, 1.0, 0.1);
         }
 
+        /* Different shapes for celebration */
         .confetti {
             width: 10px;
             height: 10px;
-            background-color: gold;
+            border-radius: 50%; /* Circles */
+        }
+
+        .ribbon {
+            width: 5px;
+            height: 25px;
+            transform: rotate(45deg); /* Ribbons */
+        }
+
+        .star {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 18px solid var(--color); /* Simple triangle star */
+            position: relative;
+            transform: rotate(20deg);
+        }
+        .star:after {
+            content: '';
             position: absolute;
-            border-radius: 50%;
-            opacity: 0;
+            top: 6px;
+            left: -10px;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 18px solid var(--color);
+            transform: rotate(-40deg);
+        }
+
+
+        @keyframes celebrate {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(-500px) rotate(720deg) scale(0.5); opacity: 0; }
+        }
+
+        /* Shake Animation for No button */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
         }
     </style>
 </head>
@@ -76,10 +129,10 @@
     <h1>Marry Me?</h1>
     <div class="options">
         <button id="yesBtn">Yes</button>
-        <button id="noBtn" disabled>No</button>
+        <button id="noBtn">No</button>
     </div>
     <div id="congratsContainer" class="hidden">
-        <div id="confetti-container"></div>
+        <div id="celebration-container"></div>
         <p id="congratsMessage"></p>
     </div>
 
@@ -88,28 +141,60 @@
         const noBtn = document.getElementById('noBtn');
         const congratsContainer = document.getElementById('congratsContainer');
         const congratsMessage = document.getElementById('congratsMessage');
-        const confettiContainer = document.getElementById('confetti-container');
+        const celebrationContainer = document.getElementById('celebration-container');
+
+        // Store the original position of the No button
+        let noBtnOriginalPosition = noBtn.style.position;
+        let noBtnOriginalTop = noBtn.style.top;
+        let noBtnOriginalLeft = noBtn.style.left;
+
 
         yesBtn.addEventListener('click', () => {
+            // Disable both buttons after Yes is clicked
+            yesBtn.disabled = true;
+            noBtn.disabled = true; // No button becomes truly disabled
+            noBtn.removeEventListener('click', shakeNoButton); // Remove the shake listener
+
             congratsMessage.textContent = "Congratulations on getting a good, caring, strong, and charming husband for yourself, Siddhant Tanwar!";
             congratsContainer.classList.remove('hidden');
-            createConfetti(); // Trigger the confetti animation
+            createCelebrationAnimation();
         });
 
-        function createConfetti() {
-            const numberOfConfetti = 100;
-            for (let i = 0; i < numberOfConfetti; i++) {
-                const confetti = document.createElement('div');
-                confetti.classList.add('confetti');
-                confetti.style.left = `${Math.random() * window.innerWidth}px`;
-                confetti.style.backgroundColor = getRandomColor();
-                confetti.style.animationDelay = `${Math.random() * 2}s`;
-                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
-                confettiContainer.appendChild(confetti);
+        noBtn.addEventListener('click', shakeNoButton);
 
-                // Remove confetti after animation ends
-                confetti.addEventListener('animationend', () => {
-                    confetti.remove();
+        function shakeNoButton() {
+            noBtn.classList.add('shake');
+            // Remove the shake class after the animation finishes to allow re-triggering
+            noBtn.addEventListener('animationend', () => {
+                noBtn.classList.remove('shake');
+            }, { once: true }); // Use { once: true } to remove the listener after it fires
+        }
+
+
+        function createCelebrationAnimation() {
+            const numberOfElements = 80; // Total number of stars, ribbons, confetti
+            const elementTypes = ['confetti', 'ribbon', 'star'];
+            const colors = ['#FFD700', '#FF69B4', '#87CEEB', '#ADFF2F', '#FF4500', '#DA70D6']; // Gold, HotPink, SkyBlue, GreenYellow, OrangeRed, Orchid
+
+            for (let i = 0; i < numberOfElements; i++) {
+                const elementType = elementTypes[Math.floor(Math.random() * elementTypes.length)];
+                const element = document.createElement('div');
+                element.classList.add('celebration-element', elementType);
+                element.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+
+                // Set initial position near the center bottom of the button for a burst effect
+                const startX = yesBtn.getBoundingClientRect().left + yesBtn.offsetWidth / 2 + (Math.random() * 40 - 20); // Randomize start slightly
+                const startY = yesBtn.getBoundingClientRect().top + yesBtn.offsetHeight / 2 + (Math.random() * 40 - 20); // Randomize start slightly
+
+                element.style.left = `${startX}px`;
+                element.style.top = `${startY}px`;
+                element.style.animationDelay = `${Math.random() * 0.5}s`; // Stagger animation start
+                element.style.animationDuration = `${Math.random() * 2 + 2}s`; // Vary animation duration
+
+                celebrationContainer.appendChild(element);
+
+                element.addEventListener('animationend', () => {
+                    element.remove();
                 });
             }
         }
